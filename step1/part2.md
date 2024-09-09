@@ -218,3 +218,23 @@ LIMIT
    ALTER USER '用户名'@'主机名' IDENTIFIED WITH mysql_native_password BY '新密码';
 4. 删除用户
    DROP USER '用户名'@'主机名';
+<!-- 主机名可以用 % 通配 -->
+
+· 权限控制
+   权限                    说明
+   ALL,ALL PRIVILEGES    所有权限
+   SELECT                查询权限
+   INSERT                插入权限
+   UPDATE                修改权限
+   DELETE                删除权限
+   ALTER                 修改表结构权限
+   DROP                  删除数据库/表/视图
+   CREATE                创建数据库/表
+
+1. 查询权限
+   SHOW GRANTS FOR '用户名'@'主机名';
+2. 授予权限
+   GRANT 权限 ON 数据库名.表名 TO '用户名'@'主机名';
+            <!-- *.* 表示所有数据库和表 -->
+3. 撤销权限
+   REVOKE 权限 ON 数据库名.表名 FROM '用户名'@'主机名';
