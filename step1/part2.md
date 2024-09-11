@@ -118,7 +118,7 @@ LIMIT
    SELECT * FROM 表名; 查询所有字段
 2. 设置别名
    SELECT 字段1 [AS 别名1],字段2 [AS 别名2] FROM 表名;
-3. 去除重复记录(去重操作)
+3. 去除重复记录(去重操作): distinct
    SELECT DISTINCT 字段列表 FROM 表名;
    
 · 条件查询(WHERE)
