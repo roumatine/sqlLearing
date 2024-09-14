@@ -31,6 +31,7 @@
         SELECT 字段列表 FROM 表1,表2 WHERE 条件...;
    2. 显示内连接
         SELECT 字段列表 FROM 表1 [INNER] JOIN 表2 ON 连接条件...;
+        <!-- 通过on消除笛卡尔积部分 -->
 <!-- 区别在表的连接形式和连接条件的表示形式 -->
 · 外连接
    1. 左外连接
@@ -44,6 +45,7 @@
     <!-- 注： 起别名 -->
 
 · 子查询 : SQL语句中嵌套SELECT语句成为嵌套查询,又称子查询
+<!-- 要起别名否则无法分清条件来自哪个表 -->
    SELECT * FROM t1 WHERE column1 = (SECLECT column1 FROM t2);
 <!-- 子查询外部的语句可以是INSERT,UPDATE,DELETE,SELECT的任何一个 -->
 根据子查询结果不同分为:
