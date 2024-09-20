@@ -90,14 +90,58 @@ select * from user where name = 'Arm';
 <!--  -->
 
 · 索引语法
-1. 创建索引
+1) 创建索引
 CREATE [UNIQUE|FULLTEXT] INDEX index_name ON table_name (index_column_name,...);
-2. 查看索引
+2) 查看索引
 SHOW INDEX FROM table_name;
-3. 删除索引
+3) 删除索引
 DROP INDEX index_name ON table_name;
 
+· SQL性能分析(工具)
+1) SQL执行评率
+通过 show [session|global] status 命令提供服务器状态信息，可以查看当前数据库的INSERT, UPDATE, DELETE, SELECT的访问频次：
+`SHOW GLOBAL STATUS LIKE 'Com_______';`  
+<!-- 一个下划线代表一个字符 -->
+2) 慢查询日志
+记录了所有执行时间超过指定参数(long_query_time,单位:秒,默认10秒)的所有SQL语句的日志。
+`show variables like 'slow_query_log';` 查询开关是否开启
+MySQL的慢查询日志默认 没有开启 ,需要在Mysql的配置文件(/etc/my.cnf)中配置如下信息:
+`slow_query_log = 1 # 开启MySQL慢日志查询开关`
+`lone_query_time = 2 # 设置慢日志查询时间为2秒,SQL 执行时间超过2秒的SQL语句将被记录到慢查询日志中`
+后重启MySQL服务进行测试,日志记录信息在/var/lib/mysql/localhost-slow.log中
+<!-- 根据mysql版本不同搜索关键词来查询配置文件,并对该配置进行修改 -->
+<!-- grep -rl "slow_query_log" /etc/mysql/ -->
+3) profile详情
+show profile 可以在SQL优化时了解时间耗费。通过have_profiling参数看到当前MySQL是否支持profile功能。
+`SELECT @@have_profiling; #是否支持`
+`SELECT @@profiling; 是否打开`
+默认profiling是关闭的,需要通过set语句在session/global中开启:
+`SET profiling = 1;`
+查看每一条SQL耗时的基本情况：
+`show profiles;`
+查看指定query_id的SQL语句各个阶段的耗时情况:
+`show profile for query query_id;`
+查看指定query_id的SQL语句CPU使用情况:
+`show profile cpu for query query_id;`
+4) explain 执行计划
+EXPLAIN或者DESC命令获取MySQL如何执行SELECT语句的信息,包括SELECT语句执行过程中表入伙连接和连接的顺序。
+直接在select语句之前加上关键字 explain/desc
+`EXPLAIN SELECT 字段列表 FROM 表名 WHERE 条件;`
 
-· SQL性能分析
+![explain](/pic/explain.jpg)
+EXPLAIN执行计划的各字段含义：
+id: select查询的序列号,表示查询中执行select子句或者是操作表的顺序(id相同，执行顺序从上到下，id不同，值越大，越先执行)
+select_type: 执行计划中的SQL语句的类型，有：SIMPLE、PRIMARY、SUBQUERY、DEPENDENT SUBQUERY、UNION、UNION RESULT、DERIVED、MATERIALIZED、TEMPORARY
+type: 表示连接类型，性能由好到差类型为 :
+NULL, system, const, eq_ref, ref,
+<!-- fulltext, ref_or_null, index_merge, unique_subquery, index_subquery, -->
+range, index, ALL
+(业务系统中基本不会优化到NULL->不访问任何表)
+(system系统表)
+(主键、唯一索引基本出现const)
+(非唯一性质索引ref)
+(全表扫描ALL,index)
+possible_key
+
 · 索引使用
 · 索引设计原则
