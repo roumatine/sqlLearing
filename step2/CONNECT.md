@@ -52,3 +52,13 @@ root下 输入mysql 无密码模式进入MySQL
 
 ## 查询ip地址
 `fconfig 或 ifconfig | grep inet`
+
+
+### 大批量数据插入
+前提操作: (查询select @@local_infile;)
+客户端连接服务端时,加上参数 --local-infile
+mysql --local-infile -u root -p
+设置全局变量local_infile=1,开启从本地加载文件导入数据的开关
+set global local_infile=1;
+执行load指令并将准备好的数据加载到表结构中
+load data local infile 'rroot/load_user.sql' into table 'tb_test' fields terminated by ',' lines terminated by '\n';
