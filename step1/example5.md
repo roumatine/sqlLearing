@@ -24,6 +24,7 @@ create table student_course(
 ) comment '学生课程中间表';
 insert into student_course values (null,1,1),(null,1,2),(null,1,3),(null,2,2),(null,2,3),(null,3,4);
 
+select * from student s, student_course sc, course c where s.id = sc.student_id and sc.course_id = c.id; -- 三表联查
 
 # -- 一对一 --
 create table tb_user(

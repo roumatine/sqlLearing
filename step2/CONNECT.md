@@ -20,7 +20,7 @@
 1. 使用管理员权限
 ` sudo -s `
 2. 安装vim
-`apt-install vim`
+`apt install vim`
 3. 安装ifconfig
 `apt install net-tools`
 4. 安装 MySQL
