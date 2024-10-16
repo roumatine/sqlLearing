@@ -171,3 +171,288 @@ begin
 end;
 
 call p3();
+
+
+create procedure p4(in score int,out result varchar(10))
+begin
+    if score >= 85 then
+        set result := '优秀';
+    elseif score >=60 then
+        set result := '及格';
+    else
+        set result := '不及格';
+    end if;
+end;
+
+call p4(98, @result);
+select @result;
+
+-- 2.将传入(IN)的200分制的分数进行换算，换算成百分制然后返回(OUT) ---> inout
+create procedure p5(inout score double)
+begin
+    set score := score * 0.5;
+end;
+
+set @score = 198;
+call p5(@score);
+select @score;
+
+
+-- case
+-- 根据传入月份，判断月份所属的季节(要求采用case结构)
+-- 1. 1-3 月份为第一季度
+-- 2. 4-6 月份为第二季度
+-- 3. 7-9 月份为第三季度
+-- 4. 10-12 月份为第四季度
+
+create procedure p6(in month int)
+begin
+    declare result varchar(10);
+
+    case
+        when month >=1 and month <=3 then
+            set result := '第一季度';
+        when month >=4 and month <=6 then
+            set result := '第二季度';
+        when month >=7 and month <=9 then
+            set result := '第三季度';
+        when month >=10 and month <=12 then
+            set result := '第四季度';
+        else
+            set result := '非法参数';
+    end case;
+
+    select concat('您输入的月份为:', month, ',所属的季度为', result);
+end;
+
+call p6(15);
+
+
+-- while
+-- 计算从1累加到n的值，n为传入的参数
+-- A. 定义一个局部变量，记录累加后情况
+-- B. 每循环一次豆会对n进行减1，如果减到0则退出循环
+
+create procedure p7(in n int)
+begin
+    declare total int default 0;
+    while n > 0 do
+        set total := total + n;
+        set n := n - 1;
+    end while;
+    select total;
+end;
+
+call p7(10);
+
+-- repeat
+-- 计算从1累加到n的值，n为传入的参数
+
+create procedure p8(in n int)
+begin
+    declare total int default 0;
+    repeat
+        set total := total + n;
+        set n := n - 1;
+    until n <= 0
+    end repeat;
+    select total;
+end;
+
+
+call p8(100);
+
+
+-- loop
+-- 1. 计算从1累加到n的值，n为传入的参数
+-- LEAVE 退出循环
+create procedure p9(in n int)
+begin
+    declare total int default 0;
+
+    sum:loop
+        if n <= 0 then
+            leave sum;
+        end if;
+
+        set total := total + n;
+        set n := n - 1;
+    end loop sum;
+
+    select total;
+end;
+
+call p9(100);
+
+-- 2. 计算从1到n之间偶数累加的值，n为传入的参数
+-- 当此累加数据是奇数，则进入下一次循环 --->iterate
+
+create procedure p10(in n int)
+begin
+    declare total int default 0;
+
+    sum:loop
+        if n <= 0 then
+            leave sum;
+        end if;
+
+        if n % 2 = 1 then
+            set n := n - 1;
+            iterate sum;
+        end if;
+
+        set total := total + n;
+        set n := n - 1;
+    end loop sum;
+
+    select total;
+end;
+
+call p10(100);
+
+-- 1.游标
+-- 根据传入的参数uage，来查询用户表tb_user中，所有的用户年龄小于等于uage的用户姓名(name)和专业(profession)
+-- 并将用户的姓名和专业插入到所创建的一张新表中(id,name,profession)
+
+-- 逻辑
+-- A.  声明游标，存储查询结果集
+-- B. 准备：创建表结构
+-- C. 开启游标
+-- D. 获取游标中的记录
+-- E. 插入数据到新表中
+-- F：关闭游标
+-- 未加入条件处理会有报错 [02000][1329] No data - zero rows fetched, selected, or processed
+-- 2.条件处理程序
+
+create procedure p11(in uage int)
+begin
+    declare u_name varchar(100);
+    declare u_pro varchar(100);
+    declare u_cursor cursor for select name,profession from tb_user where age <= uage;
+    declare exit handler for SQLSTATE '02000' close u_cursor; -- 声明条件处理程序，当sql 02000时候触发
+    -- 状态码可以从mysql官方文档查询
+
+
+    drop table if exists tb_user_pro;
+    create table if not exists tb_user_pro(
+        id int primary key auto_increment,
+        name varchar(100),
+        profession varchar(100)
+    );
+
+    open u_cursor;
+    while true do
+        fetch u_cursor into u_name,u_pro;
+        insert into tb_user_pro values (null, u_name,u_pro);
+    end while;
+
+    close u_cursor;
+end;
+
+call p11(30);
+
+
+create procedure p12(in uage int)
+begin
+    declare u_name varchar(100);
+    declare u_pro varchar(100);
+    declare u_cursor cursor for select name,profession from tb_user where age <= uage;
+    declare exit handler for NOT FOUND close u_cursor;
+
+
+    drop table if exists tb_user_pro;
+    create table if not exists tb_user_pro(
+        id int primary key auto_increment,
+        name varchar(100),
+        profession varchar(100)
+    );
+
+    open u_cursor;
+    while true do
+        fetch u_cursor into u_name,u_pro;
+        insert into tb_user_pro values (null, u_name,u_pro);
+    end while;
+
+    close u_cursor;
+end;
+
+call p12(40);
+
+# 存储函数
+-- 存储函数
+-- 计算从1累加到n的值，n为传入的参数
+
+create function fun1(n int) -- 默认且只能为IN
+returns int deterministic
+begin
+    declare total int default 0;
+
+    while n > 0 do
+        set total := total + n;
+        set n := n - 1;
+    end while;
+
+    return total;
+end;
+
+
+select fun1(100);
+
+
+# 触发器
+-- 触发器
+-- 通关触发器记录tb_user表的数据变更记录，将变更日志插入到日志表 user_log 中，包含增加修改删除
+
+-- 准备工作: 日志表user_log
+create table user_log(
+    id int(11) not null auto_increment,
+    operation varchar(20) not null comment '操作类型, insert/update/delete',
+    operate_time datetime not null comment '操作时间',
+    operate_id int(11) not null comment '操作ID',
+    operate_params varchar(500) comment '操作参数',
+    primary key (`id`)
+);
+
+-- 插入数据触发器
+create trigger tb_user_insert_trigger
+    after insert on tb_user for each row
+begin
+    insert into user_log(id, operation, operate_time, operate_id, operate_params) values
+    (null, 'insert', now(), new.id, concat('插入数据内容为: id = ',new.id,', name = ',new.name,', phone = ',new.phone,', email = ',new.email,', profession = ',new.profession));
+end;
+
+-- 查看
+show triggers ;
+
+-- 删除
+drop trigger tb_user_insert_trigger;
+
+
+-- 插入数据到tb_user
+insert into tb_user(id, name, phone, email, profession, age, gender, status, createtime)
+values (25,'二皇子','18809091212','erhuangzi@163.com','软件工程',23,'1','1',now());
+
+
+-- 修改数据触发器
+create trigger tb_user_update_trigger
+    after update on tb_user for each row
+begin
+    insert into user_log(id, operation, operate_time, operate_id, operate_params) values
+    (null, 'update', now(), new.id, concat('更新之前的数据内容为: id = ',old.id,', name = ',old.name,', phone = ',old.phone,', email = ',old.email,', profession = ',old.profession,
+                                           ' | 更新之后的数据内容为: id = ',new.id,', name = ',new.name,', phone = ',new.phone,', email = ',new.email,', profession = ',new.profession));
+end;
+
+-- 更新tb_user的一组数据
+update tb_user set age = 25 where id = 25;
+
+
+-- 删除数据触发器
+create trigger tb_user_delete_trigger
+    after delete on tb_user for each row
+begin
+    insert into user_log(id, operation, operate_time, operate_id, operate_params) values
+    (null, 'delete', now(), old.id, concat('删除之前的数据内容为: id = ',old.id,', name = ',old.name,', phone = ',old.phone,', email = ',old.email,', profession = ',old.profession));
+end;
+
+-- 删除tb_user的一组数据
+delete from tb_user where id = 25;

@@ -103,5 +103,107 @@ BEGIN
     -- SQL语句
 END;
 
+7. 流程控制 case
+1) CASE case_value
+    WHEN when_value1 THEN statement_list1
+    [WHEN when_value2 THEN statement_list2] ...
+    [ELSE statement_list]
+END CASE;
+
+2) CASE
+    WHEN search_condition1 THEN statement_list1
+    [WHEN search_condition2 THEN statement_list2] ...
+    [ELSE statement_list]
+END CASE;
+
+8. 循环
+1) while 
+while 循环是有条件的循环控制语句。满足条件后在执行循环体中的SQL语句
+-- 先判定条件，如果条件为true，则执行逻辑，否则不执行
+WHILE 条件 DO
+    SQL逻辑...
+END WHILE;
+
+2) repeat
+repeat 是有条件的循环控制语句，当满足条件时退出循环：
+-- 先执行一次逻辑然后判断逻辑是否满足，如果满足则推出，如果不满足则进行下一次循环
+REPEAT 
+    SQL逻辑... 
+    UNTIOL 条件; 
+END REPREAT;
+
+3) loop
+loop实现简单的循环，如果不在SQl逻辑中增加退出循环的条件，可以用来实现简单的死循。LOOP可以配以一下两个语句使用
+LEAVE 配合循环使用，退出循环
+ITERATE 必须用在循环中，作用是跳过当前循环剩下的语句至今进入下一次循环。
+
+[begin_label:] LOOP
+    SQL逻辑...
+END LOOP [end_label];
+
+LEAVE label; -- 推出指定标记的循环体
+ITERATE label; --直接进入下一次循环
+
+
+9. 游标(光标)
+是用来存储查询结果集的数据类型，在存储过程和函数中可以使用游标对结果集尽孝循环的出路。游标使用包括游标的声明、OPEN、FETCH和CLOSE等
+声明
+DECLARE 游标鸣超 CURSOR FOR 查询语句;
+打开
+OPEN 游标名;
+获取游标记录
+FETCH 游标 INTO 变量;
+关闭
+CLOSE 游标名;
+
+10. 条件处理程序
+可以用来定义在流程控制结构执行过程中遇到问题时相应的处理步骤
+DECLARE handler_action HANDLER FOR [,condition_value]... statement;
+
+handler_action
+    CONTINUE: 继续执行当前程序
+    EXIT : 终止执行当前程序
+condition_value
+    SQLSTATE sqlstate_value: 状态码，如02000
+    SQLWARNING: 所有以01开头的SQLSTATE的代码简写
+    NOT FOUND: 所有以02开头的SQLSTATE的代码简写
+    SQLEXCEPTION: 所有没有被SQLWARING或NOT FOUND捕获的SQLSTATE代码的简写
+
 ## 存储函数
+存储函数是有返回值的存储过程，存储函数的参数只能是IN类型
+CREATE FUNTION 存储函数名称([参数列表])
+RETUENS type [characteristic...]
+BEGIN
+    -- SQL语句
+    RETURN ...
+END
+
+characteristic 说明：
+DETERMINISTIC :相同的输入参数总是产生相同的结果
+NO SQL : 不使用SQL语句，如：SELECT、INSERT、UPDATE、DELETE等
+READS SQL DATA: 包含读取数据的语句但不包含写入数据的语句
+
+不添加 characteristic 结果会有报错-- [HY000][1418] This function has none of DETERMINISTIC, NO SQL, or READS SQL DATA in its declaration and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
+
 ## 触发器
+1. 定义
+触发器是与表有关的数据库对象，指在insert/update/delete操作之前或之后，触发并执行触发器中定义的SQL语句集合。
+触发器这种特性可以协助应用在数据库端确保数据的完整性，日志记录，数据校验等操作。
+使用别名OLD和NEW来引用触发器中发生变化的记录内容，这与其他数据库的内容是相似的。现在触发器还只是支持行级触发，不支持语句级触发
+
+触发器类型      NEW和OLD
+INSERT          NEW表示将要或者已经新增的数据
+UPDATE          OLD表示修改之前的数据，NEW表示将要或者已经修改后的数据
+DELETE          OLD表示将要或者已经删除的数据
+
+2. 语法
+1) 创建
+CREATE TRIGGER tripgger_name
+BEFORE|AFTER INSERT|UPDATE|DELETE ON table_name FOR EACH ROW -- 行级触发器
+BEGIN
+    trigger_statement;
+END;
+2) 查看
+SHOW TRIGGERS;
+3) 删除
+DROP TRIGGER trigger_name; -- 如果没有指定SCHEMA_name则默认删除当前数据库
